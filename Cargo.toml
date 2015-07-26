@@ -1,0 +1,21 @@
+[package]
+name = "genetic"
+version = "0.1.0"
+authors = ["Gustorn <gustorn@gmail.com>"]
+
+[lib]
+name = "genetic"
+
+[dependencies]
+itertools = "*"
+linear-map = "*"
+rand = "*"
+timeit = "*"
+
+[dependencies.clippy]
+git = "https://github.com/Manishearth/rust-clippy"
+
+[dev-dependencies.approx]
+git = "https://github.com/japaric/approx.rs"
+
+
