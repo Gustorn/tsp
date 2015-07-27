@@ -50,7 +50,6 @@ fn hold_tournament<'a, T, R>(chromosomes: &'a [Chromosome<T>],
                              tournament_size: usize, rng: &mut R) -> Vec<T>
     where T: Clone, R: Rng {
 
-    assert!(tournament_size <= chromosomes.len(), "Tournament size is too big for this generation");
     let mut max = rng.choose1(chromosomes);
     for _ in 0..tournament_size {
         let current = rng.choose1(chromosomes);

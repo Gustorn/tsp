@@ -1,7 +1,6 @@
 use rand::{self, Rng};
 use crossover::Crossover;
 
-/// Swaps exactly half of the number of different genes between the parents.
 #[derive(Copy, Clone)]
 pub struct HalfUniform;
 

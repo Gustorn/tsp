@@ -2,25 +2,16 @@ use rand;
 use crossover::Crossover;
 use utility::RngExt;
 
-/// An operator that results in a change in the length of the children
-///
-/// This crossover variant chooses the split points on the parents independently, and joins the
-/// resulting segments together, ignoring the length of the original parents. Because of this
-/// property, it can be used for parents of differing lengths.
 #[derive(Copy, Clone)]
 pub struct CutAndSplice {
     preset_split: Option<(usize, usize)>,
 }
 
 impl CutAndSplice {
-    /// Constructs a new CutAndSplice crossover that chooses its split points randomly.
-    /// These split points will be randomly selected every time a crossover is requested.
     pub fn new() -> Self {
         CutAndSplice { preset_split: None }
     }
 
-    /// Constructs a new CutAndSplice crossover that always splits the parents at the preset
-    /// points.
     pub fn with_preset_split(first: usize, second: usize) -> Self {
         CutAndSplice { preset_split: Some((first, second)) }
     }

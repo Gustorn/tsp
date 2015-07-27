@@ -7,9 +7,6 @@ use rand::{self, Rng};
 use crossover::Crossover;
 use utility::RngExt;
 
-/// The [Edge Recombination](https://en.wikipedia.org/wiki/Edge_recombination_operator) creates a path that is similar to that of the parents, by adding as few new edges as possible.
-///
-/// This usually performs very well, but it's a relatively expensive operator.
 #[derive(Clone, Copy)]
 pub struct EdgeRecombination;
 
@@ -76,7 +73,6 @@ fn edge_recombination<T, R>(start: &T, length: usize, adjacency: &LinearMap<T, V
     child
 }
 
-/// The best neighbor is the one with the has the least amount of neighbors on its own.
 fn best_neighbor<T, R>(current: &T, adjacency_matrix: &mut LinearMap<T, Vec<T>>, rng: &mut R) -> T
     where T: Clone + Eq + Hash,
           R: Rng {

@@ -3,21 +3,6 @@ use std::hash::Hash;
 
 use crossover::Crossover;
 
-/// Builds the children using the cycles in the parent chromosomes.
-///
-/// Identifies cycles in the parent chromosomes, then to produce the children the genes of Parent 1
-/// and Parent 2 are copied in an alternating manner, based on the cycles gathered:
-/// - Child 1: the genes of Cycle 1 is copied from Parent 1, Cycle 2 from Parent 2, Cycle 3 from
-/// Parent 1
-/// - Child 2: Cycle 1 from Parent 2, Cycle 2 from Parent 1, Cycle 3 from Parent 2
-///
-/// A cycle is defined as the following:
-/// 0. Let the value at the starting index in Parent 1 be the terminator value. The current index
-///    is the starting index.
-/// 1. The current value is the value of Parent 2 at the current index.
-/// 2. If the current value is equal to the terminator, the cycle is complete.
-/// 3. If not, look up the current value in Parent 1. Let its index be the current index, and jump
-///    to 1.
 #[derive(Copy, Clone)]
 pub struct Cycle;
 
