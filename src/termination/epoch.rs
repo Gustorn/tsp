@@ -1,19 +1,20 @@
+use generation::Generation;
 use termination::Termination;
 
+#[derive(Copy, Clone)]
 pub struct Epoch {
-    iterations: usize,
+    iterations: isize,
 }
 
 impl Epoch {
-    pub fn new(iterations: usize) -> Self {
+    pub fn new(iterations: isize) -> Self {
         Epoch { iterations: iterations }
     }
 }
 
 impl Termination for Epoch {
-    fn reached(&mut self) -> bool {
-        let reached = self.iterations == 0;
+    fn reached<T>(&mut self, _: &Generation<T>) -> bool where T: Clone {
         self.iterations -= 1;
-        reached
+        self.iterations == -1
     }
 }

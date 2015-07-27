@@ -15,7 +15,7 @@ timeit = "*"
 [dependencies.clippy]
 git = "https://github.com/Manishearth/rust-clippy"
 
-[dev-dependencies.approx]
+[dependencies.approx]
 git = "https://github.com/japaric/approx.rs"
 
 

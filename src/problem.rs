@@ -6,7 +6,7 @@ use rand::distributions::IndependentSample;
 use rand::distributions::range::{Range, SampleRange};
 
 pub trait Problem<T> : Clone where T: Clone {
-    fn generate_chromosome(&self) -> Vec<T>;
+    fn generate_population(&self, size: usize) -> Vec<Vec<T>>;
 }
 
 pub trait UniformProblem<T> : Problem<T> where T: Clone {
@@ -20,7 +20,7 @@ pub struct Numeric<T> where T: Clone + Copy + PartialOrd + SampleRange {
 }
 
 #[derive(Clone)]
-pub struct Unique<T> where T: Clone {
+pub struct Permutation<T> where T: Clone {
     pub values: Vec<T>,
 }
 
@@ -34,9 +34,12 @@ impl<T> Numeric<T> where T: Clone + Copy + PartialOrd + SampleRange {
 }
 
 impl<T> Problem<T> for Numeric<T> where T: Clone + Copy + PartialOrd + SampleRange {
-    fn generate_chromosome(&self) -> Vec<T> {
+    fn generate_population(&self, size: usize) -> Vec<Vec<T>> {
         let mut rng = ::rand::thread_rng();
-        RepeatCall::new(|| self.range.ind_sample(&mut rng)).take(self.length).collect()
+        let chromosomes = RepeatCall::new(|| {
+            RepeatCall::new(|| self.range.ind_sample(&mut rng)).take(self.length).collect()
+        });
+        chromosomes.take(size).collect()
     }
 }
 
@@ -47,17 +50,17 @@ impl<T> UniformProblem<T> for Numeric<T> where T: Clone + Copy + PartialOrd + Sa
     }
 }
 
-impl<T> From<Vec<T>> for Unique<T> where T: Clone {
+impl<T> From<Vec<T>> for Permutation<T> where T: Clone {
     fn from(values: Vec<T>) -> Self {
-        Unique {
+        Permutation {
             values: values,
         }
     }
 }
 
-impl<'a, T> From<&'a [T]> for Unique<T> where T: Clone {
+impl<'a, T> From<&'a [T]> for Permutation<T> where T: Clone {
     fn from(values: &[T]) -> Self {
-        Unique {
+        Permutation {
             values: Vec::from(values.as_ref()),
         }
     }
@@ -65,9 +68,9 @@ impl<'a, T> From<&'a [T]> for Unique<T> where T: Clone {
 
 macro_rules! from_integer_range {
     ($Int: ty) => {
-        impl From<ops::Range<$Int>> for Unique<$Int> {
+        impl From<ops::Range<$Int>> for Permutation<$Int> {
             fn from(range: ops::Range<$Int>) -> Self {
-                Unique {
+                Permutation {
                     values: range.collect()
                 }
             }
@@ -87,11 +90,14 @@ from_integer_range!(isize);
 from_integer_range!(usize);
 
 
-impl<T> Problem<T> for Unique<T> where T: Clone {
-    fn generate_chromosome(&self) -> Vec<T> {
-        let mut genes = self.values.clone();
-        ::rand::thread_rng().shuffle(&mut genes);
-        genes
+impl<T> Problem<T> for Permutation<T> where T: Clone {
+    fn generate_population(&self, size: usize) -> Vec<Vec<T>> {
+        let chromosomes = RepeatCall::new(|| {
+            let mut genes = self.values.clone();
+            ::rand::thread_rng().shuffle(&mut genes);
+            genes
+        });
+        chromosomes.take(size).collect()
     }
 }
 

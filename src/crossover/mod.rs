@@ -27,6 +27,6 @@ pub use self::uniform::Uniform;
 
 pub trait Crossover<T> {
     fn parents(&self) -> usize;
-    fn cross(&self, parents: &[Vec<T>], crossover_rate: f64) -> Vec<Vec<T>>;
+    fn children(&self) -> usize;
+    fn cross<U>(&self, parents: &[U]) -> Vec<Vec<T>> where U: AsRef<[T]>;
 }
-

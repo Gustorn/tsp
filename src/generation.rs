@@ -1,47 +1,77 @@
 use std::ops::Fn;
-use std::iter::FromIterator;
+use std::slice::Iter;
+
 use itertools::Itertools;
 
 use chromosome::Chromosome;
 
 pub struct Generation<T> {
-    pub chromosomes: Vec<Chromosome<T>>,
+    chromosomes: Vec<Chromosome<T>>,
+    total_fitness: f64,
 }
 
 impl<T> Generation<T> where T: Clone {
-    pub fn new<F, E, U, I>(generation: I, fitness: &F) -> Self
+    pub fn empty() -> Self {
+        Generation { chromosomes: Vec::new(), total_fitness: 0.0 }
+    }
+
+    pub fn new<F, U, I>(generation: I, fitness: &F) -> Self
         where F: Fn(&[T]) -> f64,
-              E: AsRef<T> + Clone,
-              U: IntoIterator<Item = E> + FromIterator<T>,
+              U: IntoIterator<Item = T>,
               I: IntoIterator<Item = U> {
 
         let mut chromosomes = generation.into_iter().map(|genome_data| {
             let genes = genome_data
                 .into_iter()
-                .map(|g| g.as_ref().clone())
+                .map(|g| g.clone())
                 .collect::<Vec<_>>();
-
             let fitness = fitness(&genes);
             Chromosome::new(genes, fitness)
         }).collect::<Vec<_>>();
 
-        chromosomes.sort_by(|c1, c2| {
-                PartialOrd::partial_cmp(&c1.fitness, &c2.fitness)
-                    .expect("A fitness value of NaN is not supported").reverse()
-        });
+        chromosomes.sort_by(|c1, c2| Ord::cmp(&c1, &c2).reverse());
+        let total_fitness = chromosomes.iter().fold(0.0, |sum, c| sum + c.fitness);
 
-        Generation {
-            chromosomes: chromosomes,
-        }
+        Generation { chromosomes: chromosomes, total_fitness: total_fitness }
+    }
+
+    pub fn best(&self) -> &Chromosome<T> {
+        &self.chromosomes[0]
+    }
+
+    pub fn iter(&self) -> Iter<Chromosome<T>> {
+        self.chromosomes.iter()
+    }
+
+    pub fn size(&self) -> usize {
+        self.chromosomes.len()
+    }
+
+    pub fn top(&self, n: usize) -> &[Chromosome<T>] {
+        &self.chromosomes[0..n]
+    }
+
+    pub fn total_fitness(&self) -> f64 {
+        self.total_fitness
     }
 
     pub fn reevaluate<F>(&mut self, fitness: &F) where F: Fn(&[T]) -> f64 {
-        for c in self.chromosomes.iter_mut() {
-            c.fitness = fitness(&c.genes);
+        for chromosome in self.chromosomes.iter_mut() {
+            chromosome.fitness = fitness(&chromosome);
         }
-        self.chromosomes.sort_by(|c1, c2| {
-                PartialOrd::partial_cmp(&c1.fitness, &c2.fitness)
-                    .expect("A fitness value of NaN is not supported").reverse()
-        });
+        self.chromosomes.sort_by(|c1, c2| Ord::cmp(&c1, &c2).reverse());
+    }
+}
+
+forward_as!(Generation, Chromosome<T>, chromosomes);
+forward_index!(Generation, Chromosome<T>, chromosomes);
+forward_into_iter!(Generation, Chromosome<T>, chromosomes);
+
+impl<T> From<Vec<Chromosome<T>>> for Generation<T> {
+    fn from(chromosomes: Vec<Chromosome<T>>) -> Self {
+        Generation {
+            chromosomes: chromosomes,
+            total_fitness: 0.0,
+        }
     }
 }

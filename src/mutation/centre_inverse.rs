@@ -1,7 +1,9 @@
-use rand::{self, Rng};
-use mutation::Mutation;
+use rand;
 
-#[derive(Clone)]
+use mutation::Mutation;
+use utility::RngExt;
+
+#[derive(Copy, Clone)]
 pub struct CentreInverse {
     preset_split: Option<usize>,
 }
@@ -19,12 +21,9 @@ impl CentreInverse {
 impl<T> Mutation<T> for CentreInverse where T: Clone {
     fn mutate(&self, mut genes: Vec<T>, mutation_rate: f64) -> Vec<T> {
         let mut rng = rand::thread_rng();
-        if rng.next_f64() < mutation_rate {
+        if rng.happens(mutation_rate) {
             let length = genes.len();
-            let split = match self.preset_split {
-                Some(split) => split,
-                None => rng.gen_range(0, length),
-            };
+            let split = self.preset_split.unwrap_or(rng.index(&genes));
             genes[0..split].reverse();
             genes[split..length].reverse();
         }

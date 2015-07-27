@@ -1,37 +1,3 @@
-macro_rules! samples {
-    ($from: expr, $to: expr, $rng: expr) => {{
-        use ::rand::Rng;
-        ::itertools::RepeatCall::new(move || $rng.gen_range($from, $to))
-    }};
-    ($from: expr, $to: expr) => {{
-        samples!($from, $to, ::rand::thread_rng())
-    }};
-}
-
-macro_rules! unique_samples {
-    ($from: expr, $to: expr, $rng: expr) => {{
-        use itertools::Itertools;
-        samples!($from, $to, $rng).unique()
-    }};
-    ($from: expr, $to: expr) => {{
-        unique_samples!($from, $to, ::rand::thread_rng())
-    }};
-}
-
-macro_rules! extract_parents {
-    ($iterable: expr, 2) => {{
-        let mut parents = $iterable.into_iter();
-        (parents.next().expect("Not enough parents for crossover"),
-         parents.next().expect("Not enough parents for crossover"))
-    }};
-    ($iterable: expr, 3) => {{
-        let mut parents = $iterable.into_iter();
-        (parents.next().expect("Not enough parents for crossover"),
-         parents.next().expect("Not enough parents for crossover"),
-         parents.next().expect("Not enough parents for crossover"))
-    }};
-}
-
 macro_rules! assert_approx_eq {
     ($lhs:expr, $rhs:expr, $tol: expr) => {{
         assert!(::approx::eq(&$lhs, &$rhs, ::approx::Abs::tol($tol)));
@@ -104,4 +70,55 @@ macro_rules! forward_index {
         forward_index!($Name, $field, Index(::std::ops::RangeTo<usize>, [$Type]));
         forward_index!($Name, $field, Index(::std::ops::RangeFull, [$Type]));
     };
+}
+
+macro_rules! forward_into_iter {
+    ($Name: ident, $Type: ty, $field: ident) => {
+        impl<T> IntoIterator for $Name<T> where T: Clone {
+            type Item = $Type;
+            type IntoIter = ::std::vec::IntoIter<$Type>;
+
+            fn into_iter(self) -> ::std::vec::IntoIter<$Type> {
+                self.$field.into_iter()
+            }
+        }
+
+        impl<'a, T> IntoIterator for &'a $Name<T> where T: Clone {
+            type Item = &'a $Type;
+            type IntoIter = ::std::slice::Iter<'a, $Type>;
+
+            fn into_iter(self) -> ::std::slice::Iter<'a, $Type> {
+                self.$field.iter()
+            }
+        }
+
+        impl<'a, T> IntoIterator for &'a mut $Name<T> where T: Clone {
+            type Item = &'a mut $Type;
+            type IntoIter = ::std::slice::IterMut<'a, $Type>;
+
+            fn into_iter(self) -> ::std::slice::IterMut<'a, $Type> {
+                self.$field.iter_mut()
+            }
+        }
+    };
+}
+
+macro_rules! samples {
+    ($from: expr, $to: expr, $rng: expr) => {{
+        use ::rand::Rng;
+        ::itertools::RepeatCall::new(move || $rng.gen_range($from, $to))
+    }};
+    ($from: expr, $to: expr) => {{
+        samples!($from, $to, ::rand::thread_rng())
+    }};
+}
+
+macro_rules! unique_samples {
+    ($from: expr, $to: expr, $rng: expr) => {{
+        use itertools::Itertools;
+        samples!($from, $to, $rng).unique()
+    }};
+    ($from: expr, $to: expr) => {{
+        unique_samples!($from, $to, ::rand::thread_rng())
+    }};
 }

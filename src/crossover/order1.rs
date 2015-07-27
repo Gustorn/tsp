@@ -1,8 +1,9 @@
 use std::ops::Range;
-use rand::{self, Rng};
+use rand;
 use crossover::Crossover;
+use utility::RngExt;
 
-#[derive(Clone, Copy)]
+#[derive(Copy, Clone)]
 pub struct Order1 {
     preset_split: Option<(usize, usize)>,
 }
@@ -25,22 +26,14 @@ impl<T> Crossover<T> for Order1 where T: Clone + PartialEq {
         2
     }
 
-    fn cross(&self, parents: &[Vec<T>], crossover_rate: f64) -> Vec<Vec<T>> {
-        assert!(parents.len() == Crossover::<T>::parents(self));
-        assert!(parents[0].len() == parents[1].len());
+    fn children(&self) -> usize {
+        2
+    }
 
+    fn cross<U>(&self, parents: &[U]) -> Vec<Vec<T>> where U: AsRef<[T]> {
         let mut rng = rand::thread_rng();
-        pre_crossover!(rng, crossover_rate, parents[0], parents[1]);
-
-        let (parent1, parent2) = (&parents[0], &parents[1]);
-        let length = parent1.len();
-        let split = match self.preset_split {
-            Some(preset_split) => preset_split,
-            None => {
-                let start = rng.gen_range(0, length - 1);
-                (start, rng.gen_range(start + 1, length))
-            },
-        };
+        let (parent1, parent2) = (parents[0].as_ref(), parents[1].as_ref());
+        let split = self.preset_split.unwrap_or(rng.range_indexes(parent1));
 
         vec![order1(parent1, parent2, split),
              order1(parent2, parent1, split)]
@@ -48,30 +41,19 @@ impl<T> Crossover<T> for Order1 where T: Clone + PartialEq {
 }
 
 
-
 fn order1<T>(parent1: &[T], parent2: &[T],
-                   (split_start, split_end): (usize, usize)) -> Vec<T>
+             (split_start, split_end): (usize, usize)) -> Vec<T>
     where T: Clone + PartialEq {
 
     let length = parent1.len();
     let swath = &parent1[split_start..split_end];
-
     let mut remaining = parent2.iter().filter(|g| !swath.contains(g));
+
     let mut child = Vec::with_capacity(length);
-
-    for _ in 0..split_start {
-        child.push(remaining.next()
-                   .expect("Not enough unique genes in the second parent for the Order1 crossover operator")
-                   .clone());
-    }
-
+    child.extend(remaining.by_ref().take(split_start).cloned());
     child.extend(swath.iter().cloned());
+    child.extend(remaining.cloned());
 
-    for _ in split_end..length {
-        child.push(remaining.next()
-                   .expect("Not enough unique genes in the second parent for the Order1 crossover operator")
-                   .clone());
-    }
     child
 }
 
@@ -83,11 +65,6 @@ mod tests {
 
                     child(0, 4, 7, 3, 6, 2, 5, 1, 8, 9),
                     child(8, 2, 1, 3, 4, 5, 6, 7, 9, 0));
-
-    test_crossover_passthrough!(order1_passthrough, i32,
-                                Order1::new(),
-                                parent(0, 1,  2,  3,  4,  5,  6,  7),
-                                parent(8, 9, 10, 11, 12, 13, 14, 15));
 
     test_crossover_panic!(order1_different_length, i32, Order1::new(),
                           parent(8, 4, 7, 3, 6, 2, 5, 1),

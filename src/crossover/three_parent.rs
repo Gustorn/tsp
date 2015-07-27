@@ -1,8 +1,6 @@
 use crossover::Crossover;
 
-use rand::{self, Rng};
-
-#[derive(Clone, Copy)]
+#[derive(Copy, Clone)]
 pub struct ThreeParent;
 
 impl ThreeParent {
@@ -16,15 +14,14 @@ impl<T> Crossover<T> for ThreeParent where T: Clone + PartialEq {
         3
     }
 
-    fn cross(&self, parents: &[Vec<T>], crossover_rate: f64) -> Vec<Vec<T>> {
-        assert!(parents.len() == Crossover::<T>::parents(self));
-        assert!(parents[0].len() == parents[1].len() &&
-                parents[1].len() == parents[2].len());
+    fn children(&self) -> usize {
+        1
+    }
 
-        let mut rng = rand::thread_rng();
-        pre_crossover!(rng, crossover_rate, parents[0], parents[1], parents[2]);
-
-        let (parent1, parent2, parent3) = (&parents[0], &parents[1], &parents[2]);
+    fn cross<U>(&self, parents: &[U]) -> Vec<Vec<T>> where U: AsRef<[T]> {
+        let (parent1, parent2, parent3) = (parents[0].as_ref(),
+                                           parents[1].as_ref(),
+                                           parents[2].as_ref());
         let genes = parent1.iter()
             .zip(parent2.iter())
             .zip(parent3.iter())
@@ -47,12 +44,6 @@ mod tests {
                     parent(0, 0, 0, 0, 1, 1, 1, 1),
 
                     child(0, 0, 0, 1, 0, 1, 1, 1));
-
-    test_crossover_passthrough!(three_parent_passthrough, i32,
-                                ThreeParent::new(),
-                                parent(0, 1,  2,  3,  4,  5,  6,  7),
-                                parent(8, 9, 10, 11, 12, 13, 14, 15),
-                                parent(1, 2,  3,  4,  5,  6,  7,  8));
 
     test_crossover_panic!(three_parent_different_length, i32, ThreeParent::new(),
                           parent(8, 4, 7, 3, 6, 2, 5, 1),

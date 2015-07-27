@@ -2,11 +2,12 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::ops::Range;
 
-use rand::{self, Rng};
+use rand;
 
 use crossover::Crossover;
+use utility::RngExt;
 
-#[derive(Clone, Copy)]
+#[derive(Copy, Clone)]
 pub struct PartiallyMapped {
     preset_split: Option<(usize, usize)>,
 }
@@ -29,22 +30,14 @@ impl<T> Crossover<T> for PartiallyMapped where T: Clone + Eq + Hash {
         2
     }
 
-    fn cross(&self, parents: &[Vec<T>], crossover_rate: f64) -> Vec<Vec<T>> {
-        assert!(parents.len() == Crossover::<T>::parents(self));
-        assert!(parents[0].len() == parents[1].len());
+    fn children(&self) -> usize {
+        2
+    }
 
+    fn cross<U>(&self, parents: &[U]) -> Vec<Vec<T>> where U: AsRef<[T]> {
         let mut rng = rand::thread_rng();
-        pre_crossover!(rng, crossover_rate, parents[0], parents[1]);
-
-        let (parent1, parent2) = (&parents[0], &parents[1]);
-        let length = parent2.len();
-        let split = match self.preset_split {
-            Some(preset_split) => preset_split,
-            None => {
-                let start = rng.gen_range(0, length - 1);
-                (start, rng.gen_range(start + 1, length))
-            },
-        };
+        let (parent1, parent2) = (parents[0].as_ref(), parents[1].as_ref());
+        let split = self.preset_split.unwrap_or(rng.range_indexes(parent1));
 
         vec![partially_mapped(parent1, parent2, split),
              partially_mapped(parent2, parent1, split)]
@@ -57,15 +50,15 @@ fn partially_mapped<T>(parent1: &[T], parent2: &[T],
 
     let length = parent1.len();
     let lookup = parent2.iter().enumerate().map(|(i, v)| (v, i)).collect::<HashMap<_,_>>();
-    if lookup.len() != parent1.len() {
+    if lookup.len() != length {
         panic!("Partially Mapped crossover is only supported for \
                 parents with a unique set of genes");
     }
 
     let swath = &parent1[split_start..split_end];
     let mut child: Vec<_> = parent1.into();
-
     let mut visit = vec![true; length];
+
     for i in split_start..split_end {
         if swath.contains(&parent2[i]) {
             visit[i] = false;
@@ -111,11 +104,6 @@ mod tests {
 
                     child(0, 7, 4, 3, 6, 2, 5, 1, 8, 9),
                     child(8, 2, 1, 3, 4, 5, 6, 7, 9, 0));
-
-    test_crossover_passthrough!(partially_mapped_passthrough, i32,
-                                PartiallyMapped::new(),
-                                parent(0, 1,  2,  3,  4,  5,  6,  7),
-                                parent(8, 9, 10, 11, 12, 13, 14, 15));
 
     test_crossover_panic!(partially_mapped_different_length, i32, PartiallyMapped::new(),
                           parent(8, 4, 7, 3, 6, 2, 5, 1),

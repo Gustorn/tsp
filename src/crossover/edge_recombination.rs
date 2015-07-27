@@ -5,6 +5,7 @@ use linear_map::LinearMap;
 use rand::{self, Rng};
 
 use crossover::Crossover;
+use utility::RngExt;
 
 /// The [Edge Recombination](https://en.wikipedia.org/wiki/Edge_recombination_operator) creates a path that is similar to that of the parents, by adding as few new edges as possible.
 ///
@@ -23,22 +24,18 @@ impl<T> Crossover<T> for EdgeRecombination where T: Clone + Eq + Hash {
         2
     }
 
-    fn cross(&self, parents: &[Vec<T>], crossover_rate: f64) -> Vec<Vec<T>> {
-        assert!(parents.len() == Crossover::<T>::parents(self));
-        assert!(parents[0].len() == parents[1].len());
-        assert!(parents[0].len() > 2);
+    fn children(&self) -> usize {
+        2
+    }
 
+    fn cross<U>(&self, parents: &[U]) -> Vec<Vec<T>> where U: AsRef<[T]> {
         let mut rng = rand::thread_rng();
-        pre_crossover!(rng, crossover_rate, parents[0], parents[1]);
-
-        let (parent1, parent2) = (&parents[0], &parents[1]);
+        let (parent1, parent2) = (parents[0].as_ref(), parents[1].as_ref());
         let length = parent1.len();
         let adjacency = adjacency_matrix(parent1, parent2);
 
-        let start0 = rng.choose(parent1)
-            .expect("Edge Recombination is not supported on empty parents");
-        let start1 = rng.choose(parent2)
-            .expect("Edge Recombination is not supported on empty parents");
+        let start0 = rng.choose1(parent1);
+        let start1 = rng.choose1(parent2);
 
         vec![edge_recombination(start0, length, &adjacency, &mut rng),
              edge_recombination(start1, length, &adjacency, &mut rng)]
@@ -68,7 +65,7 @@ fn edge_recombination<T, R>(start: &T, length: usize, adjacency: &LinearMap<T, V
         adjacency.iter_mut().foreach(|(_, mut n)| { n.retain(|g| *g != gene); });
         if !adjacency[&gene].is_empty() {
             let previous = gene.clone();
-            gene = best_neighbor(&gene, &adjacency, rng);
+            gene = best_neighbor(&gene, &mut adjacency, rng);
             adjacency.remove(&previous);
         } else {
             adjacency.remove(&gene);
@@ -79,7 +76,8 @@ fn edge_recombination<T, R>(start: &T, length: usize, adjacency: &LinearMap<T, V
     child
 }
 
-fn best_neighbor<T, R>(current: &T, adjacency_matrix: &LinearMap<T, Vec<T>>, rng: &mut R) -> T
+/// The best neighbor is the one with the has the least amount of neighbors on its own.
+fn best_neighbor<T, R>(current: &T, adjacency_matrix: &mut LinearMap<T, Vec<T>>, rng: &mut R) -> T
     where T: Clone + Eq + Hash,
           R: Rng {
 
@@ -89,13 +87,15 @@ fn best_neighbor<T, R>(current: &T, adjacency_matrix: &LinearMap<T, Vec<T>>, rng
         let sorted = adjacency_matrix[current].iter()
             .map(|n| (n, adjacency_matrix[n].len()))
             .sort_by(|a, b| Ord::cmp(&a.1, &b.1));
+
         let min = sorted[0].1;
-        let min_group = sorted.into_iter()
+        let min_group = sorted
+            .into_iter()
             .group_by(|a| a.1 == min)
             .map(|(_, v)| v)
             .next()
             .unwrap();
-        rng.choose(min_group.as_ref()).unwrap().0.clone()
+        rng.choose1(&min_group).0.clone()
     }
 }
 
@@ -150,11 +150,6 @@ fn adjacency_matrix<T>(parent1: &[T], parent2: &[T]) -> LinearMap<T, Vec<T>>
 
 #[cfg(test)]
 mod tests {
-    test_crossover_passthrough!(edge_recombination_passthrough, i32,
-                                EdgeRecombination::new(),
-                                parent(0, 1,  2,  3,  4,  5,  6,  7),
-                                parent(8, 9, 10, 11, 12, 13, 14, 15));
-
     bench_crossover!(edge_recombination_bench, i32, EdgeRecombination::new(),
                      parent(8, 4, 7, 3, 6, 2, 5, 1, 9, 0),
                      parent(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));

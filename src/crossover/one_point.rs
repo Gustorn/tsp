@@ -1,8 +1,8 @@
-use rand::{self, Rng};
+use rand;
 use crossover::Crossover;
+use utility::RngExt;
 
-
-#[derive(Clone, Copy)]
+#[derive(Copy, Clone)]
 pub struct OnePoint {
     preset_split: Option<usize>,
 }
@@ -22,19 +22,15 @@ impl<T> Crossover<T> for OnePoint where T: Clone {
         2
     }
 
-    fn cross(&self, parents: &[Vec<T>], crossover_rate: f64) -> Vec<Vec<T>> {
-        assert!(parents.len() == Crossover::<T>::parents(self));
-        assert!(parents[0].len() == parents[1].len());
+    fn children(&self) -> usize {
+        2
+    }
 
+    fn cross<U>(&self, parents: &[U]) -> Vec<Vec<T>> where U: AsRef<[T]> {
         let mut rng = rand::thread_rng();
-        pre_crossover!(rng, crossover_rate, parents[0], parents[1]);
-
-        let (parent1, parent2) = (&parents[0], &parents[1]);
+        let (parent1, parent2) = (parents[0].as_ref(), parents[1].as_ref());
         let length = parent1.len();
-        let split = match self.preset_split {
-            Some(preset_split) => preset_split,
-            None => rand::thread_rng().gen_range(0, length),
-        };
+        let split = self.preset_split.unwrap_or(rng.index(parent1));
         vec![join!(parent1[0..split], parent2[split..length]),
              join!(parent2[0..split], parent1[split..length])]
     }
@@ -48,11 +44,6 @@ mod tests {
 
                     child(0, 1, 2, 9, 10, 11),
                     child(6, 7, 8, 3,  4,  5));
-
-    test_crossover_passthrough!(one_point_passthrough, i32,
-                                OnePoint::new(),
-                                parent(0, 1,  2,  3,  4,  5,  6,  7),
-                                parent(8, 9, 10, 11, 12, 13, 14, 15));
 
     test_crossover_panic!(one_point_different_length, i32, OnePoint::new(),
                           parent(8, 4, 7, 3, 6, 2, 5, 1),

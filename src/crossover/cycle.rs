@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
-use rand::{self, Rng};
-
 use crossover::Crossover;
 
 /// Builds the children using the cycles in the parent chromosomes.
@@ -20,7 +18,7 @@ use crossover::Crossover;
 /// 2. If the current value is equal to the terminator, the cycle is complete.
 /// 3. If not, look up the current value in Parent 1. Let its index be the current index, and jump
 ///    to 1.
-#[derive(Clone, Copy)]
+#[derive(Copy, Clone)]
 pub struct Cycle;
 
 impl Cycle {
@@ -34,16 +32,14 @@ impl<T> Crossover<T> for Cycle where T: Clone + Eq + Hash {
         2
     }
 
-    fn cross(&self, parents: &[Vec<T>], crossover_rate: f64) -> Vec<Vec<T>> {
-        assert!(parents.len() == Crossover::<T>::parents(self));
-        assert!(parents[0].len() == parents[1].len());
+    fn children(&self) -> usize {
+        2
+    }
 
-        let mut rng = rand::thread_rng();
-        pre_crossover!(rng, crossover_rate, parents[0], parents[1]);
-
-        let (parent1, parent2) = (&parents[0], &parents[1]);
+    fn cross<U>(&self, parents: &[U]) -> Vec<Vec<T>> where U: AsRef<[T]> {
+        let (parent1, parent2) = (parents[0].as_ref(), parents[1].as_ref());
         let cycles = gather_cycles(parent1, parent2);
-        let (mut child1, mut child2) = (parent1.clone(), parent2.clone());
+        let (mut child1, mut child2) = (Vec::from(parent1), Vec::from(parent2));
 
         for (i, cycle) in cycles.iter().enumerate() {
             let from = if i % 2 == 0 {
@@ -59,24 +55,6 @@ impl<T> Crossover<T> for Cycle where T: Clone + Eq + Hash {
         }
         vec![child1, child2]
     }
-}
-
-fn find_cycle<T>(starting_index: usize, parent1: &[T], parent2: &[T], lookup: &HashMap<&T, usize>) -> Vec<usize>
-    where T: Clone + Eq + Hash {
-
-    let mut cycle = Vec::new();
-    let terminator = &parent1[starting_index];
-    cycle.push(starting_index);
-
-    let mut current = &parent2[starting_index];
-    while *current != *terminator {
-         let upper = *lookup.get(current)
-             .expect("Cycle crossover is only supported for parents with \
-                      an identical set of genes");
-         current = &parent2[upper];
-         cycle.push(upper);
-    }
-    cycle
 }
 
 fn gather_cycles<T>(parent1: &[T], parent2: &[T]) -> Vec<Vec<usize>>
@@ -106,6 +84,25 @@ fn gather_cycles<T>(parent1: &[T], parent2: &[T]) -> Vec<Vec<usize>>
     cycles
 }
 
+
+fn find_cycle<T>(starting_index: usize, parent1: &[T], parent2: &[T], lookup: &HashMap<&T, usize>) -> Vec<usize>
+    where T: Clone + Eq + Hash {
+
+    let mut cycle = Vec::new();
+    let terminator = &parent1[starting_index];
+    cycle.push(starting_index);
+
+    let mut current = &parent2[starting_index];
+    while *current != *terminator {
+         let upper = *lookup.get(current)
+             .expect("Cycle crossover is only supported for parents with \
+                      an identical set of genes");
+         current = &parent2[upper];
+         cycle.push(upper);
+    }
+    cycle
+}
+
 #[cfg(test)]
 mod tests {
     test_crossover!(cycle_cross, i32, Cycle::new(),
@@ -114,11 +111,6 @@ mod tests {
 
                     child(8, 1, 2, 3, 4, 5, 6, 7, 9, 0),
                     child(0, 4, 7, 3, 6, 2, 5, 1, 8, 9));
-
-    test_crossover_passthrough!(cycle_passthrough, i32,
-                                Cycle::new(),
-                                parent(0, 1,  2,  3,  4,  5,  6,  7),
-                                parent(8, 9, 10, 11, 12, 13, 14, 15));
 
     test_crossover_panic!(cycle_different_length, i32, Cycle::new(),
                           parent(8, 4, 7, 3, 6, 2, 5, 1),
