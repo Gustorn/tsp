@@ -7,7 +7,7 @@ use rand::{self, Rng};
 use crossover::Crossover;
 use utility::RngExt;
 
-#[derive(Clone, Copy)]
+#[derive(Copy, Clone)]
 pub struct EdgeRecombination;
 
 impl EdgeRecombination {

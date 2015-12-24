@@ -12,8 +12,8 @@ linear-map = "*"
 rand = "*"
 timeit = "*"
 
-[dependencies.clippy]
-git = "https://github.com/Manishearth/rust-clippy"
+##[dependencies.clippy]
+##git = "https://github.com/Manishearth/rust-clippy"
 
 [dependencies.approx]
 git = "https://github.com/japaric/approx.rs"

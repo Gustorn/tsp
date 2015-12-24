@@ -20,8 +20,8 @@ impl<T> Mutation<T> for Thrors where T: Clone {
             let length = genes.len();
             unique_samples!(0, length).take(3).triples()
                 .foreach(|(i, j, k)| {
-                    genes.as_mut().swap(i, j);
-                    genes.as_mut().swap(i, k);
+                    (*genes).as_mut().swap(i, j);
+                    (*genes).as_mut().swap(i, k);
                 });
         }
         genes

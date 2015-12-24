@@ -6,15 +6,15 @@ use reinsertion::Reinsertion;
 use utility::RngExt;
 
 #[derive(Copy, Clone)]
-pub struct Uniform;
+pub struct UniformReinsertion;
 
-impl Uniform {
+impl UniformReinsertion {
     pub fn new() -> Self {
-        Uniform
+        UniformReinsertion
     }
 }
 
-impl<T> Reinsertion<T> for Uniform where T: Clone {
+impl<T> Reinsertion<T> for UniformReinsertion where T: Clone {
     fn reinsert(&self, parents: &Generation<T>, mut offspring: Vec<Chromosome<T>>) -> Generation<T> {
         match parents.size().checked_sub(offspring.len()) {
             Some(diff) if diff > 0 => {

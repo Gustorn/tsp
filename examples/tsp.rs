@@ -1,15 +1,13 @@
 #[macro_use]
 extern crate genetic;
-extern crate itertools;
-
-use itertools::RepeatCall;
 
 use genetic::{Algorithm, Permutation, Problem};
-use genetic::crossover::EdgeRecombination;
+use genetic::crossover::*;
 use genetic::selection::*;
-use genetic::mutation::Twors;
-use genetic::reinsertion::Elitist;
+use genetic::mutation::*;
+use genetic::reinsertion::*;
 use genetic::termination::*;
+use genetic::tracking::*;
 
 
 #[derive(Clone)]
@@ -33,7 +31,7 @@ pub fn print_path(cities: &[City], chromosome: &[usize]) {
     let path = chromosome.iter()
         .map(|c| cities[*c].name.clone())
         .collect::<Vec<_>>();
-    println!("Chromosome: {:?}\nDistance: {}\n",
+    println!("Chromosome: {:?}\nDistance: {}",
              chromosome, travel_distance(cities, chromosome));
     print!("Path: {}", path[0]);
     for city in path {
@@ -91,18 +89,17 @@ fn main() {
     };
 
     let mut alg = genetic_algorithm!(
-         fitness: &tsp_fit,
+         fitness:     &tsp_fit,
          selection:   Tournament::new(0.90, 7),
-         crossover:  (EdgeRecombination::new(), rate: 0.8),
-         mutation:   (Twors::new(), rate: 0.1),
-         reinsertion: Elitist::new());
+         crossover:   (EdgeRecombination::new(), rate: 0.8),
+         mutation:    (Twors::new(),             rate: 0.1),
+         reinsertion: Elitist::new(),
+         tracking:    BestSolution::new()
+    );
 
     let problem = Permutation::from(0..cities.len());
-    let population = problem.generate_population(200);
+    let population = problem.generate_population(1000);
+    let tracking = alg.evolve(population, Iterations::new(400));
 
-    let result = alg.evolve(population, Epoch::new(1500));
-
-    let gen = alg.generation();
-
-    print_path(&cities, &gen.best());
+    print_path(&cities, &tracking.best().0);
 }

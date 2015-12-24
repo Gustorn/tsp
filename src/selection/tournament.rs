@@ -3,10 +3,10 @@ use rand::{self, Rng};
 use chromosome::Chromosome;
 use crossover::Crossover;
 use generation::Generation;
-use selection::Selection;
+use selection::{Selection, selection_size};
 use utility::RngExt;
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub struct Tournament {
     retain_ratio: f64,
     size: usize,
@@ -30,24 +30,18 @@ impl<T> Selection<T> for Tournament where T: Clone {
         where C: Crossover<T> {
 
         let mut rng = rand::thread_rng();
-        let size = generation.size() as f64;
-        let (parents, children) = (crossover.parents(), crossover.children());
 
-        let parent_to_children = parents as f64 / children as f64;
-
-        let num_selected = (size * self.retain_ratio * parent_to_children) as usize;
-        let num_selected = (num_selected / parents) * parents;
-        let mut selected = Vec::with_capacity(num_selected);
-
-        for _ in 0..num_selected {
+        let selection_size = selection_size(self.retain_ratio, generation, crossover);
+        let mut selected = Vec::with_capacity(selection_size);
+        for _ in 0..selection_size {
             selected.push(hold_tournament(&generation, self.size, &mut rng));
         }
         selected
     }
 }
 
-fn hold_tournament<'a, T, R>(chromosomes: &'a [Chromosome<T>],
-                             tournament_size: usize, rng: &mut R) -> Vec<T>
+fn hold_tournament<T, R>(chromosomes: &[Chromosome<T>],
+                         tournament_size: usize, rng: &mut R) -> Vec<T>
     where T: Clone, R: Rng {
 
     let mut max = rng.choose1(chromosomes);

@@ -6,31 +6,31 @@ macro_rules! assert_approx_eq {
 
 macro_rules! forward_as {
     ($Name: ident, $Type: ty, $field: ident) => {
-        impl<T> AsRef<[$Type]> for $Name<T> where T: Clone {
+        impl<T> AsRef<[$Type]> for $Name<T> {
             fn as_ref(&self) -> &[$Type] {
                 &self.$field
             }
         }
 
-        impl<T> AsRef<$Name<T>> for $Name<T> where T: Clone {
+        impl<T> AsRef<$Name<T>> for $Name<T> {
             fn as_ref(&self) -> &$Name<T> {
                 self
             }
         }
 
-        impl<T> AsMut<[$Type]> for $Name<T> where T: Clone {
+        impl<T> AsMut<[$Type]> for $Name<T> {
             fn as_mut(&mut self) -> &mut [$Type] {
                 &mut self.$field
             }
         }
 
-        impl<T> AsMut<$Name<T>> for $Name<T> where T: Clone {
+        impl<T> AsMut<$Name<T>> for $Name<T> {
             fn as_mut(&mut self) -> &mut $Name<T> {
                 self
             }
         }
 
-        impl<T> ::std::ops::Deref for $Name<T> where T: Clone {
+        impl<T> ::std::ops::Deref for $Name<T> {
             type Target = [$Type];
 
             fn deref(&self) -> &[$Type] {
@@ -38,7 +38,7 @@ macro_rules! forward_as {
             }
         }
 
-        impl<T> ::std::ops::DerefMut for $Name<T> where T: Clone {
+        impl<T> ::std::ops::DerefMut for $Name<T> {
             fn deref_mut(&mut self) -> &mut [$Type] {
                 &mut self.$field
             }
@@ -48,7 +48,7 @@ macro_rules! forward_as {
 
 macro_rules! forward_index {
     ($Name: ident, $field: ident, Index($Index: ty, $Out: ty)) => {
-        impl<T> ::std::ops::Index<$Index> for $Name<T> where T: Clone {
+        impl<T> ::std::ops::Index<$Index> for $Name<T> {
             type Output = $Out;
 
             fn index(&self, index: $Index) -> &$Out {
@@ -56,7 +56,7 @@ macro_rules! forward_index {
             }
         }
 
-        impl<T> ::std::ops::IndexMut<$Index> for $Name<T> where T: Clone {
+        impl<T> ::std::ops::IndexMut<$Index> for $Name<T> {
             fn index_mut(&mut self, index: $Index) -> &mut $Out {
                 &mut self.$field[index]
             }
@@ -74,7 +74,7 @@ macro_rules! forward_index {
 
 macro_rules! forward_into_iter {
     ($Name: ident, $Type: ty, $field: ident) => {
-        impl<T> IntoIterator for $Name<T> where T: Clone {
+        impl<T> IntoIterator for $Name<T> {
             type Item = $Type;
             type IntoIter = ::std::vec::IntoIter<$Type>;
 
@@ -83,7 +83,7 @@ macro_rules! forward_into_iter {
             }
         }
 
-        impl<'a, T> IntoIterator for &'a $Name<T> where T: Clone {
+        impl<'a, T> IntoIterator for &'a $Name<T> {
             type Item = &'a $Type;
             type IntoIter = ::std::slice::Iter<'a, $Type>;
 
@@ -92,7 +92,7 @@ macro_rules! forward_into_iter {
             }
         }
 
-        impl<'a, T> IntoIterator for &'a mut $Name<T> where T: Clone {
+        impl<'a, T> IntoIterator for &'a mut $Name<T> {
             type Item = &'a mut $Type;
             type IntoIter = ::std::slice::IterMut<'a, $Type>;
 

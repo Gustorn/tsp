@@ -23,7 +23,7 @@ pub use self::partially_mapped::PartiallyMapped;
 pub use self::precedence_preservative::PrecedencePreservative;
 pub use self::three_parent::ThreeParent;
 pub use self::two_point::TwoPoint;
-pub use self::uniform::Uniform;
+pub use self::uniform::UniformCrossover;
 
 pub trait Crossover<T> {
     fn parents(&self) -> usize;

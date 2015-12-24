@@ -13,7 +13,7 @@ impl FitnessThreshold {
 }
 
 impl Termination for FitnessThreshold {
-    fn reached<T>(&mut self, generation: &Generation<T>) -> bool where T: Clone {
+    fn reached<T>(&mut self, generation: &Generation<T>) -> bool {
         generation.best().fitness >= self.threshold
     }
 }

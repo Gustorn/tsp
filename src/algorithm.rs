@@ -1,4 +1,3 @@
-use std::iter::FromIterator;
 use std::ops::Fn;
 
 use rand;
@@ -10,52 +9,57 @@ use mutation::Mutation;
 use reinsertion::Reinsertion;
 use selection::Selection;
 use termination::Termination;
+use tracking::Tracking;
 use utility::RngExt;
 
-pub struct Algorithm<'a, T, C, F, M, R, S> where F: 'a {
+pub struct Algorithm<'a, T, C, F, M, R, S, TR> where F: 'a {
     generation: Generation<T>,
     crossover: C,
     fitness: &'a F,
     mutation: M,
     reinsertion: R,
     selection: S,
+    tracking: TR,
     mutation_rate: f64,
     crossover_rate: f64,
 }
 
-impl<'a, T, C, F, M, R, S> Algorithm<'a, T, C, F, M, R, S>
+impl<'a, T, C, F, M, R, S, TR> Algorithm<'a, T, C, F, M, R, S, TR>
     where T: Clone,
           C: Crossover<T>,
           F: 'a + Fn(&[T]) -> f64,
           M: Mutation<T>,
           R: Reinsertion<T>,
-          S: Selection<T> {
+          S: Selection<T>,
+          TR: Tracking<T> {
 
-    pub fn new(f: &'a F, s: S, (c, cr): (C, f64), (m, mr): (M, f64), r: R) -> Self {
+    pub fn new(fitness: &'a F,
+               selection: S,
+               (crossover, crossover_rate): (C, f64),
+               (mutation, mutation_rate): (M, f64),
+               reinsertion: R,
+               tracking: TR) -> Self {
         Algorithm {
             generation: Generation::empty(),
-            crossover: c,
-            fitness: f,
-            mutation: m,
-            reinsertion: r,
-            selection: s,
-            mutation_rate: mr,
-            crossover_rate: cr,
+            crossover: crossover,
+            fitness: fitness,
+            mutation: mutation,
+            reinsertion: reinsertion,
+            selection: selection,
+            mutation_rate: mutation_rate,
+            crossover_rate: crossover_rate,
+            tracking: tracking,
         }
     }
 
-    pub fn generation(&self) -> &Generation<T> {
-        &self.generation
-    }
-
-    pub fn evolve<U, I, Term>(&mut self, generation: I, mut termination: Term) -> Vec<U>
-        where Self: Sized,
-              U: IntoIterator<Item = T> + FromIterator<T>,
+    pub fn evolve<U, I, Term>(&mut self, generation: I, mut termination: Term) -> &TR
+        where U: IntoIterator<Item = T>,
               I: IntoIterator<Item = U>,
               Term: Termination {
 
         let mut rng = rand::thread_rng();
         self.generation = Generation::new(generation, self.fitness);
+        self.tracking.register(&self.generation);
 
         while !termination.reached(&self.generation) {
             let offspring = self.selection
@@ -75,11 +79,10 @@ impl<'a, T, C, F, M, R, S> Algorithm<'a, T, C, F, M, R, S>
 
             self.generation = self.reinsertion.reinsert(&self.generation, offspring);
             self.generation.reevaluate(&self.fitness);
+            self.tracking.register(&self.generation);
         }
 
-        self.generation.iter().map(|x| {
-            x.into_iter().cloned().collect()
-        }).collect()
+        &self.tracking
     }
 }
 
@@ -89,8 +92,14 @@ macro_rules! genetic_algorithm {
      selection:   $selection:   expr,
      crossover:  ($crossover:   expr, rate: $c_rate: expr),
      mutation:   ($mutation :   expr, rate: $m_rate: expr),
-     reinsertion: $reinsertion: expr) => {{
-        Algorithm::new($fitness, $selection, ($crossover, $c_rate),
-                                    ($mutation,  $m_rate), $reinsertion)
+     reinsertion: $reinsertion: expr,
+     tracking:    $tracking: expr) => {{
+        use genetic::algorithm::Algorithm;
+        Algorithm::new( $fitness,
+                        $selection,
+                       ($crossover, $c_rate),
+                       ($mutation,  $m_rate),
+                        $reinsertion,
+                        $tracking)
     }};
 }

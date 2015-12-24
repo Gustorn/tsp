@@ -115,7 +115,7 @@ mod tests {
                           parent(3, 3, 3, 3, 3, 3, 3, 3, 3, 3));
 
     bench_crossover!(partially_mapped_bench, i32,
-                     PartiallyMapped::with_preset_split(3..8),
+                     PartiallyMapped::with_preset_split(3..5000),
                      parent(8, 4, 7, 3, 6, 2, 5, 1, 9, 0),
                      parent(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
 }

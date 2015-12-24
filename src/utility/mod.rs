@@ -6,7 +6,7 @@ pub mod adaptors;
 use rand::Rng;
 use self::adaptors::{Pairs, Triples};
 
-pub trait Gather: Iterator {
+pub trait Gather: Iterator where Self: Sized {
     fn pairs(self) -> Pairs<Self> where Self: Sized {
         Pairs::new(self)
     }
@@ -18,7 +18,7 @@ pub trait Gather: Iterator {
 
 impl<I> Gather for I where I: Iterator {}
 
-pub trait RngExt: Rng {
+pub trait RngExt: Rng where Self: Sized {
     fn choose1<'a, T>(&mut self, slice: &'a [T]) -> &'a T {
         self.choose(slice)
             .expect("Empty slices are unsupported for this operation")

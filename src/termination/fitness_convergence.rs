@@ -23,7 +23,7 @@ impl FitnessConvergence {
 }
 
 impl Termination for FitnessConvergence {
-    fn reached<T>(&mut self, generation: &Generation<T>) -> bool where T: Clone {
+    fn reached<T>(&mut self, generation: &Generation<T>) -> bool {
         let best = generation.best().fitness;
         let previous = match self.previous {
             None => {

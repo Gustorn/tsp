@@ -20,7 +20,7 @@ impl<T> Mutation<T> for PartialShuffle where T: Clone {
         for i in 0..self.n {
             if rng.happens(mutation_rate) {
                 let j = rng.gen_range(0, self.n);
-                genes.as_mut().swap(i, j);
+                (*genes).as_mut().swap(i, j);
             }
         }
         genes

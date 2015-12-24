@@ -1,6 +1,6 @@
 #![feature(plugin)]
 #![feature(test)]
-#![plugin(clippy)]
+//#![plugin(clippy)]
 
 
 extern crate approx;
@@ -24,6 +24,7 @@ pub mod problem;
 pub mod reinsertion;
 pub mod selection;
 pub mod termination;
+pub mod tracking;
 
 pub use algorithm::Algorithm;
 pub use crossover::Crossover;

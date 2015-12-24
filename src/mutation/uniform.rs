@@ -6,21 +6,21 @@ use problem::UniformProblem;
 use utility::RngExt;
 
 #[derive(Copy, Clone)]
-pub struct Uniform<T, P> where T: Clone, P: UniformProblem<T> {
+pub struct UniformMutation<T, P> where T: Clone, P: UniformProblem<T> {
     problem: P,
     _gene: PhantomData<T>,
 }
 
-impl<T, P> Uniform<T, P> where T: Clone, P: UniformProblem<T> {
+impl<T, P> UniformMutation<T, P> where T: Clone, P: UniformProblem<T> {
     pub fn new(problem: P) -> Self {
-        Uniform {
+        UniformMutation {
             problem: problem,
             _gene: PhantomData,
         }
     }
 }
 
-impl<T, P> Mutation<T> for Uniform<T, P> where T: Clone, P: UniformProblem<T> {
+impl<T, P> Mutation<T> for UniformMutation<T, P> where T: Clone, P: UniformProblem<T> {
     fn mutate(&self, mut genes: Vec<T>, mutation_rate: f64) -> Vec<T> {
         let mut rng = rand::thread_rng();
         for (i, c) in genes.iter_mut().enumerate() {

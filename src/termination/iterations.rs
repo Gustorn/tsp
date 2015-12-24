@@ -2,18 +2,18 @@ use generation::Generation;
 use termination::Termination;
 
 #[derive(Copy, Clone)]
-pub struct Epoch {
+pub struct Iterations {
     iterations: isize,
 }
 
-impl Epoch {
+impl Iterations {
     pub fn new(iterations: isize) -> Self {
-        Epoch { iterations: iterations }
+        Iterations { iterations: iterations }
     }
 }
 
-impl Termination for Epoch {
-    fn reached<T>(&mut self, _: &Generation<T>) -> bool where T: Clone {
+impl Termination for Iterations {
+    fn reached<T>(&mut self, _: &Generation<T>) -> bool {
         self.iterations -= 1;
         self.iterations == -1
     }

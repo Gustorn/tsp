@@ -9,6 +9,10 @@ impl<T> Chromosome<T> {
     pub fn new(genes: Vec<T>, fitness: f64) -> Self {
         Chromosome { genes: genes, fitness: fitness }
     }
+
+    pub fn genes(&self) -> &[T] {
+        &self.genes
+    }
 }
 
 forward_as!(Chromosome, T, genes);
@@ -33,11 +37,11 @@ impl<T> From<Vec<T>> for Chromosome<T> {
     }
 }
 
-impl<T> Eq for Chromosome<T> where T: Clone {}
+impl<T> Eq for Chromosome<T> {}
 
 // It is assumed that a chromosome's fitness may never be NaN, so Ord is implemented to allow the use of
 // useful standard library functions (sort, max, min, etc.).
-impl<T> Ord for Chromosome<T> where T: Clone  {
+impl<T> Ord for Chromosome<T> {
     fn cmp(&self, other: &Self) -> Ordering {
         if let Some(ordering) = self.partial_cmp(other) {
             ordering
@@ -47,13 +51,13 @@ impl<T> Ord for Chromosome<T> where T: Clone  {
     }
 }
 
-impl<T> PartialEq for Chromosome<T> where T: Clone {
+impl<T> PartialEq for Chromosome<T> {
     fn eq(&self, other: &Self) -> bool {
         self.cmp(other) == Ordering::Equal
     }
 }
 
-impl<T> PartialOrd for Chromosome<T> where T: Clone  {
+impl<T> PartialOrd for Chromosome<T> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.fitness.partial_cmp(&other.fitness)
     }

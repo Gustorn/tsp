@@ -4,17 +4,17 @@ use crossover::Crossover;
 use utility::RngExt;
 
 #[derive(Copy, Clone)]
-pub struct Uniform {
+pub struct UniformCrossover {
     pub probability: f64
 }
 
-impl Uniform {
+impl UniformCrossover {
     pub fn new(probability: f64) -> Self {
-        Uniform { probability: probability }
+        UniformCrossover { probability: probability }
     }
 }
 
-impl<T> Crossover<T> for Uniform where T: Clone {
+impl<T> Crossover<T> for UniformCrossover where T: Clone {
     fn parents(&self) -> usize {
         2
     }
@@ -48,25 +48,25 @@ mod tests {
     use super::*;
     use crossover::Crossover;
 
-    test_crossover!(uniform_cross_prob0, i32, Uniform::new(0.0),
+    test_crossover!(uniform_cross_prob0, i32, UniformCrossover::new(0.0),
                     parent(0, 1,  2,  3,  4,  5,  6,  7),
                     parent(8, 9, 10, 11, 12, 13, 14, 15),
 
                     child(0, 1,  2,  3,  4,  5,  6,  7),
                     child(8, 9, 10, 11, 12, 13, 14, 15));
 
-    test_crossover!(uniform_cross_prob1, i32, Uniform::new(1.0),
+    test_crossover!(uniform_cross_prob1, i32, UniformCrossover::new(1.0),
                     parent(0, 1,  2,  3,  4,  5,  6,  7),
                     parent(8, 9, 10, 11, 12, 13, 14, 15),
 
                     child(8, 9, 10, 11, 12, 13, 14, 15),
                     child(0, 1,  2,  3,  4,  5,  6,  7));
 
-    test_crossover_panic!(uniform_cross_different_length, i32, Uniform::new(0.0),
+    test_crossover_panic!(uniform_cross_different_length, i32, UniformCrossover::new(0.0),
                           parent(8, 4, 7, 3, 6, 2, 5, 1),
                           parent(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
 
-    bench_crossover!(uniform_bench, i32, Uniform::new(0.5),
+    bench_crossover!(uniform_bench, i32, UniformCrossover::new(0.5),
                      parent(8, 4, 7, 3, 6, 2, 5, 1, 9, 0),
                      parent(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
 
@@ -76,7 +76,7 @@ mod tests {
         let epsilon = 0.03;
         let parents: Vec<Vec<i32>> = vec![vec![0; length],
                                                  vec![1; length]];
-        let uniform = Uniform::new(0.5);
+        let uniform = UniformCrossover::new(0.5);
         let children = uniform.cross(&parents);
 
         let check_genes = |child: &Vec<i32>| {

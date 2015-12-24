@@ -1,23 +1,22 @@
-use rand;
+use rand::{self, Rng};
 
 use mutation::Mutation;
 use utility::RngExt;
 
 #[derive(Copy, Clone)]
-pub struct Twors;
+pub struct Shuffle;
 
-impl Twors {
+impl Shuffle {
     pub fn new() -> Self {
-        Twors
+        Shuffle
     }
 }
 
-impl<T> Mutation<T> for Twors where T: Clone {
+impl<T> Mutation<T> for Shuffle where T: Clone {
     fn mutate(&self, mut genes: Vec<T>, mutation_rate: f64) -> Vec<T> {
         let mut rng = rand::thread_rng();
         if rng.happens(mutation_rate) {
-            let (p0, p1) = rng.range_indexes(&genes);
-            (*genes).as_mut().swap(p0, p1);
+            rng.shuffle(genes.as_mut());
         }
         genes
     }

@@ -52,8 +52,11 @@ macro_rules! bench_crossover {
         fn $Name(b: &mut ::test::Bencher) {
             use super::*;
             use crossover::Crossover;
+            use problem::{Problem, Permutation};
 
-            let parents: Vec<Vec<$Type>> = vec![$(vec![$($parent),+]),+];
+            //let parents: Vec<Vec<$Type>> = vec![$(vec![$($parent),+]),+];
+            let permutation = Permutation::from(0..10000);
+            let parents = permutation.generate_population(2);
             let cross = $crossover;
             b.iter(|| {
                 ::test::black_box(cross.cross(&parents));

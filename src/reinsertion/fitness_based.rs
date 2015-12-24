@@ -27,7 +27,7 @@ impl<'a, T, F> Reinsertion<T> for FitnessBased<'a, T, F> where T: Clone, F: 'a +
                 for c in offspring.iter_mut() {
                     c.fitness = (*self.fitness)(c);
                 }
-                offspring.as_mut().sort_by(|a, b| Ord::cmp(a, b).reverse());
+                (*offspring).as_mut().sort_by(|a, b| Ord::cmp(a, b).reverse());
                 offspring.truncate(length - diff);
             },
             _ => {},
